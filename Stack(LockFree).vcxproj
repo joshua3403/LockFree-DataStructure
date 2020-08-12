@@ -141,6 +141,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CCrashDumpClass.h" />
     <ClInclude Include="Stack(LockFree).h" />
   </ItemGroup>
   <ItemGroup>

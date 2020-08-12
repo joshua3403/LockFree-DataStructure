@@ -2,3 +2,4 @@
 *.log
 *.exe
 *.recipe
+x64/Debug/

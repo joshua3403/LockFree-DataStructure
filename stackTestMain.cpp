@@ -1,20 +1,28 @@
 #include "Stack(LockFree).h"
 
+struct st_NODE
+{
+	LONG64 lData;
+	LONG64 lCount;
+};
+
 int main()
 {
 
-	CLockFreeStack test;
+	CLockFreeStack<st_NODE> test;
 
-	CLockFreeStack::st_NODE* newNode = test.CreateNode(10, UNIQUENUM);
-	test.Push(newNode);
-
+	st_NODE testdata;
+	testdata.lData = 10000;
+	testdata.lCount = 1234;
+	test.Push(testdata);
+	testdata.lData = 20000;
+	testdata.lCount = 1234;
+	test.Push(testdata);
 
 	//CLockFreeStack<LONG64>::st_TOP_NODE first = test.Pop();
 	//wprintf(L"data : %lld\n", first.pTopNode->Data);
 	//CLockFreeStack<LONG64>::st_TOP_NODE second = test.Pop();
 	//wprintf(L"data : %lld\n", second.pTopNode->Data);
-
-	delete newNode;
 
 	return 0;
 }

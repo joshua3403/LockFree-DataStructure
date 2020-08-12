@@ -6,76 +6,58 @@
 #include <vector>
 #include <process.h>
 
-#define UNIQUENUM 0x0000000055555555
 
+template<typename DATA>
 class CLockFreeStack
 {
 public:
-	struct st_NODE;
-
-	struct st_DATA
+	typedef struct st_NODE
 	{
-		LONG64 data;
-		st_NODE* pNext;
+		DATA data;
+		st_NODE* pNextNode;
 	};
 
-	struct __declspec(align(128))st_NODE
+	struct st_TOP_NODE
 	{
-		st_DATA Data;
+		st_NODE* pTopNode;
 		LONG64 lCount;
 	};
 
-
 public:
+
 	CLockFreeStack()
 	{
-		_lUsingsize = 0;
-		_lCount = 0;
-		_pTop = (st_NODE*)_aligned_malloc(sizeof(st_NODE), 16);
-		_pTop->Data.data = 0;
-		_pTop->Data.pNext = nullptr;
+		_pTop = (st_TOP_NODE*)_aligned_malloc(sizeof(st_TOP_NODE), 16);
+		_pTop->pTopNode = nullptr;
 		_pTop->lCount = 0;
-
+		_lUsingsize = 0;
 	}
 
-	void Push(st_NODE* newNode)
+	// 템플릿 데이터 자체를 받아야 한다.
+	BOOL Push(DATA newData)
 	{
-		st_NODE stClone;
+		st_TOP_NODE stClone;
+		st_NODE* temp = new st_NODE();
+		temp->data = newData;
+
+		LONG64 newCount = InterlockedIncrement64(&_lCount);
+
 		do
 		{
-			stClone = _pTop;
-			newNode->Data.pNext = stClone;
-		} while (!InterlockedCompareExchange128((LONG64*)&_pTop, newNode->Data.data, (LONG64)UNIQUENUM, (LONG64*)&stClone));
+			stClone.pTopNode = _pTop->pTopNode;
+			stClone.lCount = _pTop->lCount;
+			temp->pNextNode = _pTop->pTopNode;
+		} while (!InterlockedCompareExchange128((LONG64*)_pTop, newCount, (LONG64)temp, (LONG64*)&stClone));
 
 		InterlockedIncrement64(&_lUsingsize);
+
+		return TRUE;
 	}
 
-	st_NODE* CreateNode(LONG64 data, LONG64 count)
+	DATA* Pop()
 	{
-		st_NODE* newNode = (st_NODE*)_aligned_malloc(sizeof(st_NODE), 16);
-		newNode->Data.data = data;
-		newNode->lCount = count;
-		newNode->Data.pNext = nullptr;
-		return newNode;
+
 	}
-
-	//BOOL Pop(LONG64* outData, LONG64* outCount)
-	//{
-	//	st_TOP_NODE stClone;
-	//	
-	//	if (isEmpty())
-	//		return FALSE;
-
-	//	InterlockedDecrement64(&_lUsingsize);
-
-	//	do
-	//	{
-	//		stClone.pTopNode = _pTop->pTopNode;
-	//		stClone.lCount = _pTop->lCount;
-	//	} while (!InterlockedCompareExchange128((LONG64*)_pTop, UNIQUENUM, (LONG64)_pTop->pTopNode->pNext, (LONG64*)&stClone));
-
-	//	return TRUE;
-	//}
 
 	BOOL isEmpty()
 	{
@@ -91,9 +73,9 @@ public:
 
 private:
 
-	st_NODE* _pTop;
-
 	LONG64 _lCount;
+
+	st_TOP_NODE* _pTop;
 
 	LONG64 _lUsingsize;
 };
