@@ -2,7 +2,7 @@
 
 unsigned int WINAPI ThreadFunc(VOID* arg);
 
-CStack stack;
+CLockFreeStack<LONG64> stack;
 
 int main()
 {
@@ -28,17 +28,16 @@ unsigned int __stdcall ThreadFunc(VOID* arg)
 	DWORD input = *(DWORD*)arg;
 	for (int i = 0; i < 10000; i++)
 	{
-		st_NODE* newNode = new st_NODE(input++, 0x0000000055555555);
-		stack.Push(newNode);
+		stack.Push(input++);
 	}
 
 	Sleep(0);
 
 	for (int i = 0; i < 10000; i++)
 	{
-		st_NODE* newNode = stack.Pop();
+		CLockFreeStack<LONG64>::st_NODE* newNode = stack.Pop();
 
-		if (newNode->lData[1] != 0x0000000055555555)
+		if (newNode->Data != 0x0000000055555555)
 		{
 			// crash
 		}
