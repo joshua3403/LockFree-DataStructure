@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "Stack(LockFree).h"
 
 struct st_NODE
