@@ -19,6 +19,11 @@ int main()
 	testdata.lCount = 1234;
 	test.Push(testdata);
 
+	st_NODE* testptr = test.Pop();
+
+
+	wprintf(L"%lld\n", testptr->lData);
+
 	//CLockFreeStack<LONG64>::st_TOP_NODE first = test.Pop();
 	//wprintf(L"data : %lld\n", first.pTopNode->Data);
 	//CLockFreeStack<LONG64>::st_TOP_NODE second = test.Pop();

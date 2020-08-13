@@ -11,10 +11,20 @@ template<typename DATA>
 class CLockFreeStack
 {
 public:
-	typedef struct st_NODE
+	struct st_NODE
 	{
 		DATA data;
 		st_NODE* pNextNode;
+
+		st_NODE()
+		{
+			wprintf(L"Node Created\n");
+		}
+
+		~st_NODE()
+		{
+			wprintf(L"Node Deleted\n");
+		}
 	};
 
 	struct st_TOP_NODE
@@ -31,6 +41,20 @@ public:
 		_pTop->pTopNode = nullptr;
 		_pTop->lCount = 0;
 		_lUsingsize = 0;
+	}
+
+	virtual ~CLockFreeStack()
+	{
+		st_NODE* pDeleteNode = nullptr;
+		for (int i = 0; i < _lUsingsize; i++)
+		{
+			pDeleteNode = _pTop->pTopNode;
+			_pTop->pTopNode = _pTop->pTopNode->pNextNode;
+			delete (pDeleteNode);
+		}
+
+		_aligned_free(_pTop);
+
 	}
 
 	// 템플릿 데이터 자체를 받아야 한다.
@@ -56,20 +80,45 @@ public:
 
 	DATA* Pop()
 	{
+		st_TOP_NODE stClone;
 
+		if (isEmpty() == TRUE )
+		{
+			return nullptr;
+		}
+
+
+		InterlockedDecrement64(&_lUsingsize);
+
+		LONG64 newCount = InterlockedIncrement64(&_lCount);
+
+		do
+		{
+			stClone.pTopNode = _pTop->pTopNode;
+			stClone.lCount = _pTop->lCount;
+		} while (!InterlockedCompareExchange128((LONG64*)_pTop, newCount, (LONG64)_pTop->pTopNode->pNextNode, (LONG64*)&stClone));
+
+		DATA* temp = &stClone.pTopNode->data;
+
+		//delete stClone.pTopNode;
+		return temp;
 	}
 
 	BOOL isEmpty()
 	{
 		if (_lUsingsize == 0)
 		{
-			if (_pTop->Data.pNext == nullptr)
+			if (_pTop->pTopNode->pNextNode == nullptr)
 				return TRUE;
 		}
 
 		return FALSE;
 	}
 
+	LONG64 GetUsingSize()
+	{
+		return _lUsingsize;
+	}
 
 private:
 
