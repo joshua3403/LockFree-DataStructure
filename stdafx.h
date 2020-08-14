@@ -7,3 +7,8 @@
 #include <atomic>
 #include <vector>
 #include <process.h>
+#include <crtdbg.h>
+#include <psapi.h>
+#include <stdio.h>
+#include <DbgHelp.h>
+#include <minidumpapiset.h>

@@ -1,9 +1,5 @@
 #pragma once
-#include <Windows.h>
-#include <crtdbg.h>
-#include <psapi.h>
-#include <stdio.h>
-#include <DbgHelp.h>
+#include "stdafx.h"
 
 class CCrashDump
 {
@@ -111,3 +107,5 @@ public:
 
 	static long _lDumpCount;
 };
+
+long CCrashDump::_lDumpCount = 0;

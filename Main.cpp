@@ -3,7 +3,7 @@
 #include "MemoryPool_mail.h"
 #include "CCrashDumpClass.h"
 
-#define dfMAX_DATA_COUNT 40000
+#define dfMAX_DATA_COUNT 4000
 
 struct st_DATA
 {
@@ -22,10 +22,13 @@ unsigned int WINAPI ThreadFunc(VOID* arg);
 
 int main()
 {
+	CCrashDump::CCrashDump();
 	std::vector<HANDLE> threadhandle;
 	SYSTEM_INFO si;
 
 	GetSystemInfo(&si);
+
+
 
 	DWORD dwThreadID = 0;
 	DWORD t = 0;
@@ -67,49 +70,49 @@ int main()
 
 unsigned int __stdcall ThreadFunc(VOID* arg)
 {
-	st_DATA* aTestData[10000];
+	st_DATA* aTestData[1000];
 	while (!bShutDown)
 	{
-		for (int i = 0; i < 10000; i++)
+		for (int i = 0; i < 1000; i++)
 		{
 			aTestData[i] = g_MemoryPool.Alloc();
 			InterlockedIncrement64(&LAllocCount);
 		}
 
-		for (int i = 0; i < 10000; i++)
+		for (int i = 0; i < 1000; i++)
 		{
 			if (aTestData[i]->lData != 0x0000000055555555 || aTestData[i]->lCount
 				!= 0)
 				CCrashDump::Crash();
 		}
 
-		for (int i = 0; i < 10000; i++)
+		for (int i = 0; i < 1000; i++)
 		{
 			InterlockedIncrement64(&aTestData[i]->lData);
 			InterlockedIncrement64(&aTestData[i]->lCount);
 		}
 
-		for (int i = 0; i < 10000; i++)
+		for (int i = 0; i < 1000; i++)
 		{
 			if (aTestData[i]->lData != 0x0000000055555556 || aTestData[i]->lCount
 				!= 1)
 				CCrashDump::Crash();
 		}
 
-		for (int i = 0; i < 10000; i++)
+		for (int i = 0; i < 1000; i++)
 		{
 			InterlockedDecrement64(&aTestData[i]->lData);
 			InterlockedDecrement64(&aTestData[i]->lCount);
 		}
 
-		for (int i = 0; i < 10000; i++)
+		for (int i = 0; i < 1000; i++)
 		{
 			if (aTestData[i]->lData != 0x0000000055555555 || aTestData[i]->lCount
 				!= 0)
 				CCrashDump::Crash();
 		}
 
-		for (int i = 0; i < 10000; i++)
+		for (int i = 0; i < 1000; i++)
 		{
 			g_MemoryPool.Free(aTestData[i]);
 			InterlockedDecrement64(&LAllocCount);
