@@ -95,7 +95,7 @@ public:
 
 		DATA* temp = &stClone.pTopNode->data;
 
-		//delete stClone.pTopNode;
+		delete stClone.pTopNode;
 		return temp;
 	}
 
