@@ -87,7 +87,7 @@ public:
 	// Parameters: 없음.
 	// Return: (int) 메모리 풀 내부 전체 개수
 	//////////////////////////////////////////////////////////////////////////
-	int		GetAllocCount(void) { return m_iMaxCount; }
+	LONG64		GetAllocCount(void) { return m_lMaxCount; }
 
 	//////////////////////////////////////////////////////////////////////////
 	// 현재 사용중인 블럭 개수를 얻는다.
@@ -95,7 +95,7 @@ public:
 	// Parameters: 없음.
 	// Return: (int) 사용중인 블럭 개수.
 	//////////////////////////////////////////////////////////////////////////
-	int		GetUseCount(void) { return m_iUseCount; }
+	LONG64		GetUseCount(void) { return m_lUseCount; }
 
 
 public:
@@ -103,7 +103,7 @@ public:
 private :
 	// 스택 방식으로 반환된 (미사용) 오브젝트 블럭을 관리.
 
-	st_BLOCK_NODE* _pTop;
+	st_TOP_NODE* _pTop;
 	LONG64 m_lFreeCount;
 	LONG64 m_lMaxCount;
 	LONG64 m_lUseCount;
@@ -130,23 +130,23 @@ inline CFreeList<DATA>::CFreeList(int iBlockNum, bool bPlacementNew)
 	m_bUsingPlacementNew = bPlacementNew;
 	//wprintf(L"%d\n", sizeof(st_BLOCK_NODE));
 	// 지역변수
-	int count = m_iMaxCount;
+	//int count = m_lMaxCount;
 
-	if (m_lMaxCount != 0)
-	{
+	//if (m_lMaxCount != 0)
+	//{
 
-		while (count > 0)
-		{
-			void* newBlock = malloc(sizeof(st_BLOCK_NODE) + sizeof(DATA));
-			newNode = new(newBlock) st_BLOCK_NODE;
-			newNode->stpNextBlock = _pTop->pTopNode->stpNextBlock;
-			_pTop->pTopNode = newNode;
-			newObject = new((char*)newBlock + sizeof(st_BLOCK_NODE)) DATA;			
-			count--;
-			//wprintf(L"CFreeList() : MemoryPool Header Pointer : %p, newNode Pointer : %p newObject Pointer : %p\n", this->_pFreeNode->stpNextBlock, newNode, newObject);
+	//	while (count > 0)
+	//	{
+	//		void* newBlock = malloc(sizeof(st_BLOCK_NODE) + sizeof(DATA));
+	//		newNode = new(newBlock) st_BLOCK_NODE;
+	//		newNode->stpNextBlock = _pTop->pTopNode->stpNextBlock;
+	//		_pTop->pTopNode = newNode;
+	//		newObject = new((char*)newBlock + sizeof(st_BLOCK_NODE)) DATA;			
+	//		count--;
+	//		//wprintf(L"CFreeList() : MemoryPool Header Pointer : %p, newNode Pointer : %p newObject Pointer : %p\n", this->_pFreeNode->stpNextBlock, newNode, newObject);
 
-		}
-	}
+	//	}
+	//}
 }
 
 template<class DATA>
@@ -174,7 +174,6 @@ inline DATA* CFreeList<DATA>::Alloc(void)
 
 	LONG64 MaxCount = m_lMaxCount;
 	InterlockedIncrement64(&m_lUseCount);
-
 	// 새로 만들어야 한다면
 	if (MaxCount < m_lUseCount)
 	{
@@ -183,12 +182,12 @@ inline DATA* CFreeList<DATA>::Alloc(void)
 	}
 	else
 	{
-		LONG64 newCount = InterlockedIncrement(&m_lCount);
+		LONG64 newCount = InterlockedIncrement64(&m_lCount);
 		do
 		{
 			CloneTop.pTopNode = _pTop->pTopNode;
 			CloneTop.lCount = _pTop->lCount;
-		} while (!InterlockedCompareExchange128((LONG64*)_pTop, newCount, _pTop->pTopNode->stpNextBlock, (LONG64*)&CloneTop));
+		} while (!InterlockedCompareExchange128((LONG64*)_pTop, newCount, (LONG64)_pTop->pTopNode->stpNextBlock, (LONG64*)&CloneTop));
 
 		newNode = CloneTop.pTopNode;
 	}
@@ -204,10 +203,10 @@ inline DATA* CFreeList<DATA>::Alloc(void)
 template<class DATA>
 inline bool CFreeList<DATA>::Free(DATA* pData)
 {
-	st_BLOCK_NODE* returnedBlock = (char*)pData - sizeof(st_BLOCK_NODE);
+	st_BLOCK_NODE* returnedBlock = ((st_BLOCK_NODE*)pData) - 1;
 	st_TOP_NODE CloneTop;
 
-	LONG64 newCount = InterlockedDecrement(&m_lCount);
+	LONG64 newCount = InterlockedDecrement64(&m_lCount);
 
 
 	do
