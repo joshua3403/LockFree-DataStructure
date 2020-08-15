@@ -33,15 +33,8 @@ private:
 		st_BLOCK_NODE()
 		{
 			stpNextBlock = nullptr;
-			check = 0x1107;
-			//wprintf(L"st_BLOCK_NODE Contructor\n");
 		}
 
-		~st_BLOCK_NODE()
-		{
-			//wprintf(L"st_BLOCK_NODE Destroyer\n");
-		}
-		DWORD check;
 		st_BLOCK_NODE *stpNextBlock;
 	};
 
@@ -116,6 +109,10 @@ private :
 template<class DATA>
 inline CFreeList<DATA>::CFreeList(int iBlockNum, bool bPlacementNew)
 {
+	// 새로히 생성할 객체 블럭
+	DATA* newObject = nullptr;
+	st_BLOCK_NODE* newNode = nullptr;
+
 	// 맴버 변수 초기화
 	m_lMaxCount = m_lFreeCount = iBlockNum;
 	m_lUseCount = 0;
@@ -124,25 +121,6 @@ inline CFreeList<DATA>::CFreeList(int iBlockNum, bool bPlacementNew)
 	_pTop->lCount = 0;
 	m_lCount = 0;
 	m_bUsingPlacementNew = bPlacementNew;
-	//wprintf(L"%d\n", sizeof(st_BLOCK_NODE));
-	// 지역변수
-	//int count = m_lMaxCount;
-
-	//if (m_lMaxCount != 0)
-	//{
-
-	//	while (count > 0)
-	//	{
-	//		void* newBlock = malloc(sizeof(st_BLOCK_NODE) + sizeof(DATA));
-	//		newNode = new(newBlock) st_BLOCK_NODE;
-	//		newNode->stpNextBlock = _pTop->pTopNode->stpNextBlock;
-	//		_pTop->pTopNode = newNode;
-	//		newObject = new((char*)newBlock + sizeof(st_BLOCK_NODE)) DATA;			
-	//		count--;
-	//		//wprintf(L"CFreeList() : MemoryPool Header Pointer : %p, newNode Pointer : %p newObject Pointer : %p\n", this->_pFreeNode->stpNextBlock, newNode, newObject);
-
-	//	}
-	//}
 }
 
 template<class DATA>
@@ -202,9 +180,7 @@ inline bool CFreeList<DATA>::Free(DATA* pData)
 	st_BLOCK_NODE* returnedBlock = ((st_BLOCK_NODE*)pData) - 1;
 	st_TOP_NODE CloneTop;
 
-	LONG64 newCount = InterlockedDecrement64(&m_lCount);
-
-
+	LONG64 newCount = InterlockedIncrement64(&m_lCount);
 	do
 	{
 		CloneTop.pTopNode = _pTop->pTopNode;

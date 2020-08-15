@@ -1,11 +1,28 @@
 #pragma once
 
+#pragma comment(lib, "winmm.lib")
+
+#pragma comment(lib, "DbgHelp.Lib")
+#pragma comment(lib, "ImageHlp")
+#pragma comment(lib, "psapi")
+
+
 #include <stdio.h>
+#include <tchar.h>
 #include <Windows.h>
-#include <atomic>
-#include <vector>
 #include <process.h>
+#include <Windows.h>
+#include <vector>
+#include <winnt.h>
+
 #include <psapi.h>
-#include <stdio.h>
-#include <DbgHelp.h>
-#include <minidumpapiset.h>
+#include <dbghelp.h>
+#include <crtdbg.h>
+#include <tlhelp32.h>
+#include <strsafe.h>
+
+
+//------------------------------------------
+
+#include "Stack(LockFree).h"
+#include "MemoryPool_mail.h"
