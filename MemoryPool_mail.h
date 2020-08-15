@@ -116,10 +116,6 @@ private :
 template<class DATA>
 inline CFreeList<DATA>::CFreeList(int iBlockNum, bool bPlacementNew)
 {
-	// 새로히 생성할 객체 블럭
-	DATA* newObject = nullptr;
-	st_BLOCK_NODE* newNode = nullptr;
-
 	// 맴버 변수 초기화
 	m_lMaxCount = m_lFreeCount = iBlockNum;
 	m_lUseCount = 0;

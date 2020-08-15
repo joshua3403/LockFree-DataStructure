@@ -22,20 +22,16 @@ unsigned int WINAPI ThreadFunc(VOID* arg);
 
 int main()
 {
-	CCrashDump::CCrashDump();
 	std::vector<HANDLE> threadhandle;
 	SYSTEM_INFO si;
-
 	GetSystemInfo(&si);
-
-
 
 	DWORD dwThreadID = 0;
 	DWORD t = 0;
 
 	InitialMemoryPool();
 
-	for (int i = 0; i < si.dwNumberOfProcessors; i++)
+	for (DWORD i = 0; i < si.dwNumberOfProcessors; i++)
 	{
 		threadhandle.push_back((HANDLE)_beginthreadex(NULL, 0, ThreadFunc, &t, 0, (unsigned int*)&dwThreadID));
 		t += 10000;
@@ -49,7 +45,7 @@ int main()
 
 	while (true)
 	{
-		system("cls");
+		//system("cls");
 		if (GetAsyncKeyState('q') & 0x8000 || GetAsyncKeyState('Q') & 0x8000)
 		{
 			break;
