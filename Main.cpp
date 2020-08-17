@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "CCrashDumpClass.h"
 
-#define dfMAX_DATA_COUNT 400
+#define dfMAX_DATA_COUNT 2000
 
 struct st_DATA
 {
@@ -34,8 +34,7 @@ int main()
 
 	for (DWORD i = 0; i < si.dwNumberOfProcessors; i++)
 	{
-		threadhandle.push_back((HANDLE)_beginthreadex(NULL, 0, ThreadFunc, &t, 0, (unsigned int*)&dwThreadID));
-		t += 10000;
+		threadhandle.push_back((HANDLE)_beginthreadex(NULL, 0, ThreadFunc, NULL, 0, (unsigned int*)&dwThreadID));
 		CloseHandle(threadhandle[i]);
 	}
 
@@ -48,7 +47,7 @@ int main()
 			break;
 		}
 		wprintf(L"===============================================\n");
-		wprintf(L"             LocFree MemoryPool Test           \n");
+		wprintf(L"             LockFree MemoryPool Test           \n");
 		wprintf(L"Thread Count : %d, Max Data Count : %d\n", si.dwNumberOfProcessors, dfMAX_DATA_COUNT);
 		wprintf(L"===============================================\n");
 		wprintf(L"Memory Alloc Count : %lld, Memory Using Count : %lld, Counting : %lld\n", g_MemoryPool.GetAllocCount(), g_MemoryPool.GetUseCount(), LAllocCount);
@@ -67,49 +66,49 @@ int main()
 
 unsigned int __stdcall ThreadFunc(VOID* arg)
 {
-	st_DATA* aTestData[100];
+	st_DATA* aTestData[1000];
 	while (!bShutDown)
 	{
-		for (int i = 0; i < 100; i++)
+		for (int i = 0; i < 1000; i++)
 		{
 			aTestData[i] = g_MemoryPool.Alloc();
 			InterlockedIncrement64(&LAllocCount);
 		}
 
-		for (int i = 0; i < 100; i++)
+		for (int i = 0; i < 1000; i++)
 		{
 			if ((aTestData[i]->lData != 0x0000000055555555) || (aTestData[i]->lCount
 				!= 0))
 				CCrashDump::Crash();
 		}
 
-		for (int i = 0; i < 100; i++)
+		for (int i = 0; i < 1000; i++)
 		{
 			InterlockedIncrement64(&aTestData[i]->lData);
 			InterlockedIncrement64(&aTestData[i]->lCount);
 		}
 
-		for (int i = 0; i < 100; i++)
+		for (int i = 0; i < 1000; i++)
 		{
 			if ((aTestData[i]->lData != 0x0000000055555556) || (aTestData[i]->lCount
 				!= 1))
 				CCrashDump::Crash();
 		}
 
-		for (int i = 0; i < 10; i++)
+		for (int i = 0; i < 1000; i++)
 		{
 			InterlockedDecrement64(&aTestData[i]->lData);
 			InterlockedDecrement64(&aTestData[i]->lCount);
 		}
 
-		for (int i = 0; i < 100; i++)
+		for (int i = 0; i < 1000; i++)
 		{
 			if ((aTestData[i]->lData != 0x0000000055555555) || (aTestData[i]->lCount
 				!= 0))
 				CCrashDump::Crash();
 		}
 
-		for (int i = 0; i < 100; i++)
+		for (int i = 0; i < 1000; i++)
 		{
 			g_MemoryPool.Free(aTestData[i]);
 			InterlockedDecrement64(&LAllocCount);

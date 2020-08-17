@@ -21,10 +21,10 @@
     <ClInclude Include="CCrashDumpClass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="MemoryPool_mail.h">
+    <ClInclude Include="stdafx.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="stdafx.h">
+    <ClInclude Include="MemoryPool%28LockFree%29.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

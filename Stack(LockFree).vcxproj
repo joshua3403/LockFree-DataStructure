@@ -150,7 +150,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CCrashDumpClass.h" />
-    <ClInclude Include="MemoryPool_mail.h" />
+    <ClInclude Include="MemoryPool%28LockFree%29.h" />
     <ClInclude Include="Stack(LockFree).h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
