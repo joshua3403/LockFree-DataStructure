@@ -1,5 +1,7 @@
 #pragma once
 #include "stdafx.h"
+#include "Stack(LockFree).h"
+#include "MemoryPool(LockFree).h"
 
 
 template<typename DATA>
@@ -36,6 +38,8 @@ public:
 		_pTop->pTopNode = nullptr;
 		_pTop->lCount = 0;
 		_lUsingsize = 0;
+
+		_MemoryPool = new CFreeList<st_NODE>(0, FALSE);
 	}
 
 	virtual ~CLockFreeStack()
@@ -45,9 +49,9 @@ public:
 		{
 			pDeleteNode = _pTop->pTopNode;
 			_pTop->pTopNode = _pTop->pTopNode->pNextNode;
-			delete (pDeleteNode);
+			_MemoryPool->Free(pDeleteNode);
 		}
-
+		delete _MemoryPool;
 		_aligned_free(_pTop);
 
 	}
@@ -56,7 +60,7 @@ public:
 	BOOL Push(DATA newData)
 	{
 		st_TOP_NODE stClone;
-		st_NODE* temp = new st_NODE();
+		st_NODE* temp = _MemoryPool->Alloc();
 		temp->data = newData;
 
 		LONG64 newCount = InterlockedIncrement64(&_lCount);
@@ -73,13 +77,13 @@ public:
 		return TRUE;
 	}
 
-	DATA* Pop()
+	BOOL Pop(DATA* pData)
 	{
 		st_TOP_NODE stClone;
 
 		if (isEmpty() == TRUE )
 		{
-			return nullptr;
+			return FALSE;
 		}
 
 
@@ -93,10 +97,11 @@ public:
 			stClone.lCount = _pTop->lCount;
 		} while (!InterlockedCompareExchange128((LONG64*)_pTop, newCount, (LONG64)_pTop->pTopNode->pNextNode, (LONG64*)&stClone));
 
-		DATA* temp = &stClone.pTopNode->data;
+		*pData = stClone.pTopNode->data;
 
-		//delete stClone.pTopNode;
-		return temp;
+		_MemoryPool->Free(stClone.pTopNode);
+
+		return TRUE;
 	}
 
 	BOOL isEmpty()
@@ -122,4 +127,6 @@ private:
 	st_TOP_NODE* _pTop;
 
 	LONG64 _lUsingsize;
+
+	CFreeList<st_NODE>* _MemoryPool;
 };

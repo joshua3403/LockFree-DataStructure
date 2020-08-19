@@ -180,6 +180,9 @@ inline bool CFreeList<DATA>::Free(DATA* pData)
 	st_BLOCK_NODE* returnedBlock = ((st_BLOCK_NODE*)pData) - 1;
 	st_TOP_NODE CloneTop;
 
+	if (m_bUsingPlacementNew)
+		delete pData;
+
 	LONG64 newCount = InterlockedIncrement64(&m_lCount);
 	do
 	{
