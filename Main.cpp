@@ -4,7 +4,7 @@
 #include "Stack(LockFree).h"
 #include "Queue(LockFree).h"
 
-#define dfMAX_DATA_COUNT 16000
+#define dfMAX_DATA_COUNT 3
 
 struct st_DATA
 {
@@ -23,6 +23,7 @@ CLockFreeStack<st_DATA*> g_LockFreeStack;
 CQueue<st_DATA*> g_LockFreeQueue;
 LONG64 lPushTPS = 0;
 LONG64 lPopTPS = 0;
+SYSTEM_INFO si;
 
 
 unsigned int WINAPI MemoryPoolThreadFunc(VOID* arg);
@@ -43,7 +44,6 @@ int main()
 {
 	CCrashDump::CCrashDump();
 	std::vector<HANDLE> threadhandle;
-	SYSTEM_INFO si;
 
 	GetSystemInfo(&si);
 
@@ -184,11 +184,11 @@ unsigned int __stdcall LockFreeStackThreadFunc(VOID* arg)
 
 unsigned int __stdcall LockFreeQueueThreadFunc(VOID* arg)
 {
-	st_DATA* pDataArray[2];
+	st_DATA* pDataArray[dfMAX_DATA_COUNT];
 
 	while (!bShutDown)
 	{
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < dfMAX_DATA_COUNT; i++)
 		{
 			if (!(g_LockFreeQueue.Dequeue(&pDataArray[i])))
 				CCrashDump::Crash();
@@ -196,37 +196,37 @@ unsigned int __stdcall LockFreeQueueThreadFunc(VOID* arg)
 			InterlockedIncrement64(&LPopCount);
 		}
 
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < dfMAX_DATA_COUNT; i++)
 		{
 			if (pDataArray[i]->lData != 0x0000000055555555 || pDataArray[i]->lCount != 0)
 				CCrashDump::Crash();
 		}
 
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < dfMAX_DATA_COUNT; i++)
 		{
 			InterlockedIncrement64(&pDataArray[i]->lData);
 			InterlockedIncrement64(&pDataArray[i]->lCount);
 		}
 
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < dfMAX_DATA_COUNT; i++)
 		{
 			if (pDataArray[i]->lData != 0x0000000055555556 || pDataArray[i]->lCount != 1)
 				CCrashDump::Crash();
 		}
 
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < dfMAX_DATA_COUNT; i++)
 		{
 			InterlockedDecrement64(&pDataArray[i]->lData);
 			InterlockedDecrement64(&pDataArray[i]->lCount);
 		}
 
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < dfMAX_DATA_COUNT; i++)
 		{
 			if (pDataArray[i]->lData != 0x0000000055555555 || pDataArray[i]->lCount != 0)
 				CCrashDump::Crash();
 		}
 
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < dfMAX_DATA_COUNT; i++)
 		{
 			if (!(g_LockFreeQueue.Enqueue(pDataArray[i])))
 				CCrashDump::Crash();
@@ -323,12 +323,12 @@ void PrintLockFreeStack(void)
 
 void InitialLockFreeQueue(void)
 {
-	st_DATA* pDataArray[32];
+	st_DATA* pDataArray[6];
 
 	///////////////////////////////////////////////////////////////////////////////////////////
 	// 데이터 생성(확보)
 	///////////////////////////////////////////////////////////////////////////////////////////
-	for (int iCnt = 0; iCnt < 32; iCnt++)
+	for (int iCnt = 0; iCnt < 6; iCnt++)
 		pDataArray[iCnt] = new st_DATA;
 
 
@@ -336,7 +336,7 @@ void InitialLockFreeQueue(void)
 	// iData = 0x0000000055555555 셋팅
 	// lCount = 0 셋팅
 	///////////////////////////////////////////////////////////////////////////////////////////
-	for (int iCnt = 0; iCnt < 32; iCnt++)
+	for (int iCnt = 0; iCnt < 6; iCnt++)
 	{
 		pDataArray[iCnt]->lData = 0x0000000055555555;
 		pDataArray[iCnt]->lCount = 0;
@@ -345,7 +345,7 @@ void InitialLockFreeQueue(void)
 	///////////////////////////////////////////////////////////////////////////////////////////
 	// 2.스택에 넣음
 	///////////////////////////////////////////////////////////////////////////////////////////
-	for (int iCnt = 0; iCnt < 32; iCnt++)
+	for (int iCnt = 0; iCnt < 6; iCnt++)
 		g_LockFreeQueue.Enqueue(pDataArray[iCnt]);
 
 	return;
@@ -360,10 +360,10 @@ void PrintLockFreeQueue(void)
 
 	wprintf(L"===============================================\n");
 	wprintf(L"                LockFree Queue Test            \n");
-	wprintf(L"Thread Count : %d, Max Data Count : %d\n", 16, 32);
+	wprintf(L"Thread Count : %d, Max Data Count : %d\n", si.dwNumberOfProcessors, si.dwNumberOfProcessors * dfMAX_DATA_COUNT);
 	wprintf(L"===============================================\n");
 	wprintf(L"Queue using count : %lld, Memory Using Count : %lld, PushTPS : %lld, PopTPS : %lld\n", g_LockFreeQueue.GetUsingCount(), g_LockFreeQueue.GetAllocCount(), lPushTPS, lPopTPS);
-	if (48 < g_LockFreeQueue.GetUsingCount() || 49 < g_LockFreeQueue.GetAllocCount())
+	if (si.dwNumberOfProcessors * dfMAX_DATA_COUNT < g_LockFreeQueue.GetUsingCount() || (si.dwNumberOfProcessors * dfMAX_DATA_COUNT + 1) < g_LockFreeQueue.GetAllocCount())
 	{
 		CCrashDump::Crash();
 	}

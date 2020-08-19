@@ -5,3 +5,4 @@
 x64/Debug/
 x64/Release/
 Dump_20200819_01.20.21_1_4MP.dmp
+*.dmp

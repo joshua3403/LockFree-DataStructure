@@ -88,6 +88,7 @@ public:
 				// tail의 next가 null이고 현재 미리 얻어논 tail을 복사한 노드가 가리키는 다음 노드 주소값이 tail이 가리키고 있는 노드의 다음 노드 주소값과 같고 이게 nullptr이면.
 				if (_InterlockedCompareExchangePointer((PVOID*)&stCloneNode.pTopNode->NextNode, newNode, nextNode) == nullptr)
 				{
+					InterlockedIncrement64(&m_lSize);
 					InterlockedCompareExchange128((LONG64*)m_pTail, newCount, (LONG64)stCloneNode.pTopNode->NextNode, (LONG64*)&stCloneNode);
 					break;
 				}
@@ -97,10 +98,10 @@ public:
 			else
 			{
 				InterlockedCompareExchange128((LONG64*)m_pTail, newCount, (LONG64)stCloneNode.pTopNode->NextNode, (LONG64*)&stCloneNode);
+
 			}
 		}
 
-		InterlockedIncrement64(&m_lSize);
 
 		return TRUE;
 	}
@@ -112,7 +113,6 @@ public:
 
 		LONG64 newHead = InterlockedIncrement64(&m_lHeadCount);
 
-		InterlockedDecrement64(&m_lSize);
 
 		while (true)
 		{
@@ -128,21 +128,11 @@ public:
 			nextNode = stCloneHeadNode.pTopNode->NextNode;
 
 			// 비었다면
-			if (m_lSize == 0)
+			if (m_lSize == 0 && (m_pHead->pTopNode == m_pTail->pTopNode))
 			{
-				//if (m_pHead->pTopNode == m_pTail->pTopNode)
-				//{
-
-				//}
 				data = nullptr;
 				return FALSE;
 			}
-			//else if (nullptr != stCloneTailNode.pTopNode->NextNode)
-			//{
-			//	LONG64 newTail = InterlockedIncrement64(&m_lTailCount);
-			//	InterlockedCompareExchange128((LONG64*)m_pTail, newTail, (LONG64)stCloneTailNode.pTopNode->NextNode, (LONG64*)&stCloneTailNode);
-
-			//}
 			else
 			{
 
@@ -155,9 +145,11 @@ public:
 						m_MemoryPool->Free(stCloneHeadNode.pTopNode);
 						break;
 					}
+
 				}
 			}
 		}
+		InterlockedDecrement64(&m_lSize);
 
 		return TRUE;
 	}
