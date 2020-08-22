@@ -27,12 +27,18 @@ private:
 	CFreeList<st_NODE>* m_MemoryPool;
 
 	st_NODE* m_pDummyNode;
+	LONG64 m_EnLogCount;
 
 	LONG64 m_lHeadCount;
 	LONG64 m_lTailCount;
+	WCHAR** EnqueueLog;
+
 public:
 	CQueue()
 	{
+		EnqueueLog = new WCHAR * [100000000];
+
+		m_EnLogCount = 0;
 		m_lSize = m_lHeadCount = m_lTailCount= 0;
 		m_MemoryPool = new CFreeList<st_NODE>(0, FALSE);
 
@@ -74,6 +80,7 @@ public:
 
 		st_TOP_NODE stCloneNode;
 		st_NODE* nextNode;
+		LONG64 Logcount = InterlockedIncrement64(&m_EnLogCount);
 
 		while(true)
 		{
@@ -89,7 +96,12 @@ public:
 				if (_InterlockedCompareExchangePointer((PVOID*)&stCloneNode.pTopNode->NextNode, newNode, nextNode) == nullptr)
 				{
 					InterlockedIncrement64(&m_lSize);
+
 					InterlockedCompareExchange128((LONG64*)m_pTail, newCount, (LONG64)stCloneNode.pTopNode->NextNode, (LONG64*)&stCloneNode);
+
+
+
+
 					break;
 				}
 			}
@@ -97,12 +109,15 @@ public:
 			// 그냥 테일을 옮겨주고 새로 시도 하자.
 			else
 			{
-				InterlockedCompareExchange128((LONG64*)m_pTail, newCount, (LONG64)stCloneNode.pTopNode->NextNode, (LONG64*)&stCloneNode);
 
+				InterlockedCompareExchange128((LONG64*)m_pTail, newCount, (LONG64)stCloneNode.pTopNode->NextNode, (LONG64*)&stCloneNode);
 			}
 		}
 
 
+		//WCHAR temp[256];
+		//StringCchPrintf(temp, 256, L"Enqueue : %lld Thread ID : %d, head node : %p, head next node : %p, tail node : %p, tail next node : %p, MemoryPool usingcount %d, node connect, tail move", GetCurrentThreadId(), m_pHead->pTopNode, m_pHead->pTopNode->NextNode, m_pTail->pTopNode, m_pTail->pTopNode->NextNode, m_MemoryPool->GetUseCount());
+		//EnqueueLog[Logcount] = temp;
 		return TRUE;
 	}
 
@@ -113,7 +128,7 @@ public:
 
 		LONG64 newHead = InterlockedIncrement64(&m_lHeadCount);
 
-
+		LONG64 Logcount = InterlockedIncrement64(&m_EnLogCount);
 		while (true)
 		{
 			// 헤드 저장
@@ -135,6 +150,12 @@ public:
 			}
 			else
 			{
+				if (stCloneTailNode.pTopNode->NextNode != nullptr)
+				{
+					//wprintf(L"Here\n");
+					LONG64 newCount = InterlockedIncrement64(&m_lTailCount);
+					InterlockedCompareExchange128((LONG64*)m_pTail, newCount, (LONG64)stCloneTailNode.pTopNode->NextNode, (LONG64*)&stCloneTailNode);
+				}
 
 				// 헤드의 next에 노드가 존재한다면
 				if (nextNode != nullptr)
@@ -142,14 +163,24 @@ public:
 					*data = nextNode->data;
 					if (InterlockedCompareExchange128((LONG64*)m_pHead, newHead, (LONG64)stCloneHeadNode.pTopNode->NextNode, (LONG64*)&stCloneHeadNode))
 					{
+
 						m_MemoryPool->Free(stCloneHeadNode.pTopNode);
+						//WCHAR temp[256];
+						//StringCchPrintf(temp, 256, L"Dequeue Thread ID : %d, head node : %p, head next node : %p, tail node : %p, tail next node : %p, MemoryPool usingcount %d, node connect, tail move", GetCurrentThreadId(), m_pHead->pTopNode, m_pHead->pTopNode->NextNode, m_pTail->pTopNode, m_pTail->pTopNode->NextNode, m_MemoryPool->GetUseCount());
+
+						//EnqueueLog[Logcount] = temp;
+
+						InterlockedDecrement64(&m_lSize);
+
 						break;
 					}
 
 				}
 			}
 		}
-		InterlockedDecrement64(&m_lSize);
+
+
+
 
 		return TRUE;
 	}
