@@ -142,14 +142,18 @@ public:
 			// 헤드의 next저장
 			nextNode = stCloneHeadNode.pTopNode->NextNode;
 
-			// 비었다면
-			if (m_lSize == 0 && (m_pHead->pTopNode == m_pTail->pTopNode))
+			// 비었다면 이곳도 수정해야 한다.
+			if (m_lSize == 0 && (m_pHead->pTopNode->NextNode == nullptr)
 			{
 				data = nullptr;
 				return FALSE;
 			}
 			else
 			{
+				// head와 tail이 같은 노드를 가리키고 있는 상황 => 비어있는 상황 but
+				// enq와 deq가 동시에 발생 => enq에서 tail을 검사하고 node를 이었다.(1st CAS)
+				// 이후 2번째 CAS(tail 전진)을 하지 못한채 deq가 실행되면 head확인, head의 next가 nullptr이 아님.
+				// deq성공 이후 다시 enq의 2번째 CAS시도. 하지만 이미 tail이 가리키고 있던 노드는 free된 상황. => 프로그램 깨짐.
 				if (stCloneTailNode.pTopNode->NextNode != nullptr)
 				{
 					//wprintf(L"Here\n");

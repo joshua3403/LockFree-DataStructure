@@ -323,12 +323,12 @@ void PrintLockFreeStack(void)
 
 void InitialLockFreeQueue(void)
 {
-	st_DATA* pDataArray[6];
+	st_DATA* pDataArray[12];
 
 	///////////////////////////////////////////////////////////////////////////////////////////
 	// 데이터 생성(확보)
 	///////////////////////////////////////////////////////////////////////////////////////////
-	for (int iCnt = 0; iCnt < 6; iCnt++)
+	for (int iCnt = 0; iCnt <12; iCnt++)
 		pDataArray[iCnt] = new st_DATA;
 
 
@@ -336,7 +336,7 @@ void InitialLockFreeQueue(void)
 	// iData = 0x0000000055555555 셋팅
 	// lCount = 0 셋팅
 	///////////////////////////////////////////////////////////////////////////////////////////
-	for (int iCnt = 0; iCnt < 6; iCnt++)
+	for (int iCnt = 0; iCnt < 12; iCnt++)
 	{
 		pDataArray[iCnt]->lData = 0x0000000055555555;
 		pDataArray[iCnt]->lCount = 0;
@@ -345,7 +345,7 @@ void InitialLockFreeQueue(void)
 	///////////////////////////////////////////////////////////////////////////////////////////
 	// 2.스택에 넣음
 	///////////////////////////////////////////////////////////////////////////////////////////
-	for (int iCnt = 0; iCnt < 6; iCnt++)
+	for (int iCnt = 0; iCnt < 12; iCnt++)
 		g_LockFreeQueue.Enqueue(pDataArray[iCnt]);
 
 	return;
