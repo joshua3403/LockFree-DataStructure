@@ -143,7 +143,7 @@ public:
 			nextNode = stCloneHeadNode.pTopNode->NextNode;
 
 			// 비었다면 이곳도 수정해야 한다.
-			if (m_lSize == 0 && (m_pHead->pTopNode->NextNode == nullptr)
+			if (m_lSize == 0 && (m_pHead->pTopNode->NextNode == nullptr))
 			{
 				data = nullptr;
 				return FALSE;
